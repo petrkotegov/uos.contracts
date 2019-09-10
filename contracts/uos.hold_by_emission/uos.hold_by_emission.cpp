@@ -2,7 +2,7 @@
 
 namespace UOS {
 
-    void uos_hold_by_emission::settime(int64_t begin, int64_t end) {
+    void uos_hold_by_emission::setparams(int64_t begin, int64_t end, float multiplier) {
            //print("SETTIME","\n");
            //print("BEGIN ", begin, "\n");
            //print("END ", end, "\n");
@@ -12,16 +12,20 @@ namespace UOS {
 
            check(0 < begin, "must be non-zero values");
            check(begin < end, "begin must be less than end");
+           check(multiplier > 0, "multiplier must be positive");
 
-           //check if the limits are already set
-           check(!_limits.exists(), "time limits are already set");
+           //check if the params are already set
+           check(!_limits.exists() || _multiplier.exists(), "the parameters are already set");
 
            //set values
-           time_limits temp;
-           temp.begin = begin;
-           temp.end = end;
-           _limits.set(temp,_self);
+           time_limits lim;
+           lim.begin = begin;
+           lim.end = end;
+           _limits.set(lim,_self);
 
+           emission_multiplier mult;
+           mult.value = multiplier;
+           _multiplier.set(mult,_self);
     }
 
     void uos_hold_by_emission::transfer(name from, name to, asset quantity, string memo) {
@@ -64,7 +68,7 @@ namespace UOS {
         }
     }
 
-    void uos_hold_by_emission::withdraw(name acc_name) {
+    void uos_hold_by_emission::withdraw(name acc_name, asset emission, std::vector<checksum_pair> proof) {
         //print("WITHDRAW","\n");
         //print("ACC_NAME ", name{acc_name}, "\n");
         
@@ -74,6 +78,8 @@ namespace UOS {
         //print("BEGIN ", lim_begin, "\n");
         auto lim_end = _limits.get().end;
         //print("END ", lim_end, "\n");
+        auto mult = _multiplier.get().value;
+        //print("MULTIPLIER ", mult, "\n");
         
         check(0 < lim_begin && lim_begin < lim_end, "limits are not set properly");
         
@@ -86,16 +92,24 @@ namespace UOS {
 
         check(current_time > lim_begin, "withdrawal period not started yet");
 
-        uint64_t withdraw_limit = 0;
+        uint64_t limit_by_time = 0;
         if(current_time > lim_end) {
             //print("FULL DEPOSIT \n");
-            withdraw_limit = itr->deposit;
+            limit_by_time = itr->deposit;
         } else {
             //print("SOME PART OF DEPOSIT \n");
-            withdraw_limit = (uint64_t)((float)itr->deposit
+            limit_by_time = (uint64_t)((float)itr->deposit
                                       * (float)(current_time - lim_begin)
                                       / (float)(lim_end - lim_begin));
         }
+
+        uint64_t limit_by_emission = (uint64_t)((float)emission.amount * mult);
+
+        uint64_t withdraw_limit = limit_by_time;
+        if(limit_by_emission < withdraw_limit){
+            withdraw_limit = limit_by_emission;
+        }
+        
 
         //print("DEPOSIT ", itr->deposit, "\n");
         //print("WITHDRAWAL ", itr->withdrawal, "\n");
@@ -125,8 +139,8 @@ namespace UOS {
     extern "C" {
     void apply(uint64_t receiver, uint64_t code, uint64_t action) {
         uos_hold_by_emission _uos_hold_by_emission(name(receiver));
-        if(code==receiver && action== name("settime").value) {
-            execute_action(name(receiver), name(code), &uos_hold_by_emission::settime );
+        if(code==receiver && action== name("setparams").value) {
+            execute_action(name(receiver), name(code), &uos_hold_by_emission::setparams );
         }
         else if(code==receiver && action== name("withdraw").value) {
             execute_action(name(receiver), name(code), &uos_hold_by_emission::withdraw );
