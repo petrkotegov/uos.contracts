@@ -82,6 +82,8 @@ namespace UOS {
         //print("MULTIPLIER ", mult, "\n");
         
         check(0 < lim_begin && lim_begin < lim_end, "limits are not set properly");
+
+        check(check_proof(emission, proof), "proof failed the check");
         
         balance_table bals(_self,_self.value);
         auto itr = bals.find(acc_name.value);
@@ -109,7 +111,6 @@ namespace UOS {
         if(limit_by_emission < withdraw_limit){
             withdraw_limit = limit_by_emission;
         }
-        
 
         //print("DEPOSIT ", itr->deposit, "\n");
         //print("WITHDRAWAL ", itr->withdrawal, "\n");
@@ -134,6 +135,10 @@ namespace UOS {
             item.deposit=itr->deposit;
             item.withdrawal=itr->withdrawal + current_withdrawal;
         });        
+    }
+
+    bool uos_hold_by_emission::check_proof(asset emission, std::vector<checksum_pair> proof) {
+        return true;
     }
     
     extern "C" {
