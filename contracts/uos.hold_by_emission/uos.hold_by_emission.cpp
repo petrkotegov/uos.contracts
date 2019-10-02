@@ -4,14 +4,14 @@ namespace UOS {
 
     void uos_hold_by_emission::setparams(int64_t time_begin, int64_t time_end, float multiplier, name emission_contract) {
            //print("SETTIME","\n");
-           //print("BEGIN ", begin, "\n");
-           //print("END ", end, "\n");
+           //print("BEGIN ", time_begin, "\n");
+           //print("END ", time_end, "\n");
 
            //check self-authentication
            require_auth(_self);
 
-           check(0 < begin, "must be non-zero values");
-           check(begin < end, "begin must be less than end");
+           check(0 < time_begin, "must be non-zero values");
+           check(time_begin < time_end, "begin must be less than end");
            check(multiplier > 0, "multiplier must be positive");
 
            //check if the params are already set
@@ -90,17 +90,17 @@ namespace UOS {
         auto current_time = eosio::current_time_point().time_since_epoch()._count;
         //print("CURRENT TIME ", current_time, "\n");
 
-        check(current_time > lim_begin, "withdrawal period not started yet");
+        check(current_time > time_begin, "withdrawal period not started yet");
 
         uint64_t limit_by_time = 0;
-        if(current_time > lim_end) {
+        if(current_time > time_end) {
             //print("FULL DEPOSIT \n");
             limit_by_time = itr->deposit;
         } else {
             //print("SOME PART OF DEPOSIT \n");
             limit_by_time = (uint64_t)((float)itr->deposit
-                                      * (float)(current_time - lim_begin)
-                                      / (float)(lim_end - lim_begin));
+                                      * (float)(current_time - time_begin)
+                                      / (float)(time_end - time_begin));
         }
 
         

@@ -14,17 +14,17 @@ namespace UOS {
         typedef std::vector<checksum256> checksum_pair;
 
         uos_hold_by_emission(name receiver, name code, datastream<const char*> ds)
-                : contract(receiver, code, ds) , _limits(code,receiver.value), _multiplier(code,receiver.value){
+                : contract(receiver, code, ds) , _params(code,receiver.value){
         }
 
         [[eosio::action]]
-        void setparams(int64_t begin, int64_t end, float multiplier);
+        void setparams(int64_t time_begin, int64_t time_end, float multiplier, name emission_contract);
 
         [[eosio::action]]
         void transfer(name from, name to, asset quantity, string memo);
 
         [[eosio::action]]
-        void withdraw(name acc_name, asset emission, std::vector<checksum_pair> proof);
+        void withdraw(name acc_name);
 
     private:
 
@@ -53,6 +53,6 @@ namespace UOS {
 
         typedef multi_index <"balance"_n, balance_entry> balance_table;
 
-        parameters _params;
+        parameters_singleton _params;
     };
 }
