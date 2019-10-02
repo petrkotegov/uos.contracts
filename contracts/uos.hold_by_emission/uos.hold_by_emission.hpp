@@ -49,9 +49,24 @@ namespace UOS {
             EOSLIB_SERIALIZE(balance_entry, (acc_name)(deposit)(withdrawal))
         };
 
+        // the values we get from the uos emission contract
+        struct  //[[eosio::table]]
+        total_values{
+            name owner;
+            asset total_emission;
+            asset total_withdrawal;
+
+            uint64_t  primary_key() const {return owner.value;}
+
+            //EOSLIB_SERIALIZE(total_values, (owner)(total_emission)(total_withdrawal))
+        };
+
         typedef eosio::singleton <"params"_n, parameters> parameters_singleton;
 
         typedef multi_index <"balance"_n, balance_entry> balance_table;
+        
+        // the table from the uos emission contract
+        typedef multi_index <"totals"_n,total_values> totals_table;
 
         parameters_singleton _params;
     };

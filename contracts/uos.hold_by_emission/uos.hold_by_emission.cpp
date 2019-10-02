@@ -92,6 +92,7 @@ namespace UOS {
 
         check(current_time > time_begin, "withdrawal period not started yet");
 
+        //get the limit determined by current time
         uint64_t limit_by_time = 0;
         if(current_time > time_end) {
             //print("FULL DEPOSIT \n");
@@ -102,18 +103,27 @@ namespace UOS {
                                       * (float)(current_time - time_begin)
                                       / (float)(time_end - time_begin));
         }
+        // print("LIMIT BY TIME ", limit_by_time, "\n");
 
         
-        // uint64_t limit_by_emission = (uint64_t)((float)emission.amount * mult);
+        //get the limit determined by current total emission
+        totals_table tottable(emcontract,emcontract.value);
+        auto tot_itr = tottable.find(acc_name.value);
+        check(tot_itr != tottable.end(), "emission not found");
+        auto emission = tot_itr->total_emission;
+        // print("EMISSION ", emission, "\n");
+        uint64_t limit_by_emission = (uint64_t)((float)emission.amount * mult);
+        // print("LIMIT BY EMISSION ", limit_by_emission, "\n");
 
+        //withdrawal limit is the lowest of the two limits
         uint64_t withdraw_limit = limit_by_time;
-        // if(limit_by_emission < withdraw_limit){
-        //     withdraw_limit = limit_by_emission;
-        // }
+        if(limit_by_emission < withdraw_limit){
+            withdraw_limit = limit_by_emission;
+        }
+        //print("WITHDRAW LIMIT ", withdraw_limit, "\n");
 
         //print("DEPOSIT ", itr->deposit, "\n");
         //print("WITHDRAWAL ", itr->withdrawal, "\n");
-        //print("WITHDRAW LIMIT ", withdraw_limit, "\n");
 
         check(itr->withdrawal < withdraw_limit, "nothing to withdraw");
 
