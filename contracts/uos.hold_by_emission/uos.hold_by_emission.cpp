@@ -2,7 +2,7 @@
 
 namespace UOS {
 
-    void uos_hold_by_emission::setparams(int64_t begin, int64_t end, float multiplier) {
+    void uos_hold_by_emission::setparams(int64_t time_begin, int64_t time_end, float multiplier, name emission_contract) {
            //print("SETTIME","\n");
            //print("BEGIN ", begin, "\n");
            //print("END ", end, "\n");
@@ -15,17 +15,15 @@ namespace UOS {
            check(multiplier > 0, "multiplier must be positive");
 
            //check if the params are already set
-           check(!_limits.exists() || _multiplier.exists(), "the parameters are already set");
+           check(!_params.exists(), "the parameters are already set");
 
            //set values
-           time_limits lim;
-           lim.begin = begin;
-           lim.end = end;
-           _limits.set(lim,_self);
-
-           emission_multiplier mult;
-           mult.value = multiplier;
-           _multiplier.set(mult,_self);
+           parameters params;
+           params.time_begin = time_begin;
+           params.time_end = time_end;
+           params.multiplier = multiplier;
+           params.emission_contract = emission_contract;
+           _params.set(params,_self);
     }
 
     void uos_hold_by_emission::transfer(name from, name to, asset quantity, string memo) {
@@ -68,21 +66,21 @@ namespace UOS {
         }
     }
 
-    void uos_hold_by_emission::withdraw(name acc_name, asset emission, std::vector<checksum_pair> proof) {
+    void uos_hold_by_emission::withdraw(name acc_name) {
         //print("WITHDRAW","\n");
         //print("ACC_NAME ", name{acc_name}, "\n");
         
         require_auth(acc_name);
         
-        auto lim_begin = _limits.get().begin;
-        //print("BEGIN ", lim_begin, "\n");
-        auto lim_end = _limits.get().end;
-        //print("END ", lim_end, "\n");
-        auto mult = _multiplier.get().value;
+        auto time_begin = _params.get().time_begin;
+        //print("TIME BEGIN ", time_begin, "\n");
+        auto time_end = _params.get().time_end;
+        //print("TIME END ", time_end, "\n");
+        auto mult = _params.get().multiplier;
         //print("MULTIPLIER ", mult, "\n");
+        auto emcontract = _params.get().emission_contract;
+        //print("EMISSION CONTRACT ", emcontract, "\n");
         
-        check(0 < lim_begin && lim_begin < lim_end, "limits are not set properly");
-
         check(0 < time_begin && time_begin < time_end, "time limits are not set properly");
 
         balance_table bals(_self,_self.value);
@@ -138,9 +136,6 @@ namespace UOS {
         });        
     }
 
-        return true;
-    }
-    
     extern "C" {
     void apply(uint64_t receiver, uint64_t code, uint64_t action) {
         uos_hold_by_emission _uos_hold_by_emission(name(receiver));

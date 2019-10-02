@@ -28,15 +28,14 @@ namespace UOS {
 
     private:
 
-        struct  [[eosio::table("limits")]]
-        time_limits{
-            uint64_t begin;
-            uint64_t end;
-        };
+        struct  [[eosio::table("params")]]
+        parameters{
+            uint64_t time_begin;
+            uint64_t time_end;
 
-        struct  [[eosio::table("multiplier")]]
-        emission_multiplier{
-            float value;
+            float multiplier;
+
+            name emission_contract;
         };
 
         struct  [[eosio::table]]
@@ -50,14 +49,10 @@ namespace UOS {
             EOSLIB_SERIALIZE(balance_entry, (acc_name)(deposit)(withdrawal))
         };
 
-        typedef eosio::singleton <"limits"_n, time_limits> time_limits_singleton;
-
-        typedef eosio::singleton <"multiplier"_n, emission_multiplier> emission_multiplier_singleton;
+        typedef eosio::singleton <"params"_n, parameters> parameters_singleton;
 
         typedef multi_index <"balance"_n, balance_entry> balance_table;
 
-        time_limits_singleton _limits;
-
-        emission_multiplier_singleton _multiplier;
+        parameters _params;
     };
 }
