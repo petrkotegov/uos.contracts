@@ -59,7 +59,5 @@ namespace UOS {
         time_limits_singleton _limits;
 
         emission_multiplier_singleton _multiplier;
-
-        bool check_proof(asset emission, std::vector<checksum_pair> proof);
     };
 }

@@ -83,8 +83,8 @@ namespace UOS {
         
         check(0 < lim_begin && lim_begin < lim_end, "limits are not set properly");
 
-        check(check_proof(emission, proof), "proof failed the check");
-        
+        check(0 < time_begin && time_begin < time_end, "time limits are not set properly");
+
         balance_table bals(_self,_self.value);
         auto itr = bals.find(acc_name.value);
         check(itr != bals.end(), "balance record not found");
@@ -105,12 +105,13 @@ namespace UOS {
                                       / (float)(lim_end - lim_begin));
         }
 
-        uint64_t limit_by_emission = (uint64_t)((float)emission.amount * mult);
+        
+        // uint64_t limit_by_emission = (uint64_t)((float)emission.amount * mult);
 
         uint64_t withdraw_limit = limit_by_time;
-        if(limit_by_emission < withdraw_limit){
-            withdraw_limit = limit_by_emission;
-        }
+        // if(limit_by_emission < withdraw_limit){
+        //     withdraw_limit = limit_by_emission;
+        // }
 
         //print("DEPOSIT ", itr->deposit, "\n");
         //print("WITHDRAWAL ", itr->withdrawal, "\n");
@@ -137,7 +138,6 @@ namespace UOS {
         });        
     }
 
-    bool uos_hold_by_emission::check_proof(asset emission, std::vector<checksum_pair> proof) {
         return true;
     }
     
